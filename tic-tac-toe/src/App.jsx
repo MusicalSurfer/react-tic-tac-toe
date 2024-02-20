@@ -1,85 +1,93 @@
-import { useState } from 'react'
-// Create a tic tac toe game that uses variable state to save who's turn it is, who wins the game, and if it is a draw.
-// TODO:
-// Display who's turn it is
-// Display draw message
+import { useState } from 'react';
 
-// Child component 
 function Square({ value, onSquareClick }) {
-	return <button className="square" onClick={onSquareClick}>{value}</button>;
+	return (
+		<button className="square" onClick={onSquareClick}>{value}</button>
+	);
 }
 
-// Parent component
-export default function Board() {
-	// Create state to determine which player will take a turn.
-	const [isXNext, setIsXNext] = useState(true);
-	// Create state to create a array to hold the values of the squares
-	const [squareState, setSquareState] = useState(Array(9).fill(null));
-
-	// Handler function for click event
+function Board({ xIsNext, squares, onPlay }) {
 	function handleClick(i) {
-		// If there is a declared winner, or the square already has a value, return early.
-		if ((winner) || (squareState[i])) {
+		if (calculateWinner(squares) || squares[i]) {
 			return;
 		}
-		// Create a subArray for squareState
-		const subArray = squareState.slice();
-		(isXNext) ? subArray[i] = "X" : subArray[i] = "O";
-		setSquareState(subArray); // Update squareState array
-		setIsXNext(!isXNext); // Flip flag to change turn
-	}
-
-	// Helper function to calculate if there is a winner.
-	function calculateWinner(squareState) {
-		// Winning combinations
-		const list = [
-			[0, 1, 2],
-			[3, 4, 5],
-			[6, 7, 8],
-			[0, 3, 6],
-			[1, 4, 7],
-			[2, 5, 8],
-			[0, 4, 8],
-			[2, 4, 6]
-		];
-		// If there is a winning combination, return winner, otherwise return null.
-		for (let i = 0; i < list.length; i++) {
-			const [a, b, c] = list[i];
-			if (squareState[a] && squareState[a] === squareState[b] && squareState[a] === squareState[c]) {
-				return squareState[a];
-			}
+		const nextSquares = squares.slice();
+		if (xIsNext) {
+			nextSquares[i] = 'X';
+		} else {
+			nextSquares[i] = 'O';
 		}
-		return null;
+		onPlay(nextSquares);
 	}
 
-	// Current turn and winner message logic
-	let currentTurn;
-	const winner = calculateWinner(squareState);
-
+	const winner = calculateWinner(squares);
+	let status;
 	if (winner) {
-		currentTurn = "Winner: " + winner;
+		status = 'Winner: ' + winner;
 	} else {
-		(isXNext) ? currentTurn = "X's turn" : currentTurn = "O's turn";
+		status = 'Next player: ' + (xIsNext ? 'X' : 'O');
 	}
 
 	return (
 		<>
-			<div className="status">{currentTurn}</div>
+			<div className="status">{status}</div>
 			<div className="board-row">
-				<Square value={squareState[0]} onSquareClick={() => handleClick(0)} />
-				<Square value={squareState[1]} onSquareClick={() => handleClick(1)} />
-				<Square value={squareState[2]} onSquareClick={() => handleClick(2)} />
+				<Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+				<Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+				<Square value={squares[2]} onSquareClick={() => handleClick(2)} />
 			</div>
 			<div className="board-row">
-				<Square value={squareState[3]} onSquareClick={() => handleClick(3)} />
-				<Square value={squareState[4]} onSquareClick={() => handleClick(4)} />
-				<Square value={squareState[5]} onSquareClick={() => handleClick(5)} />
+				<Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+				<Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+				<Square value={squares[5]} onSquareClick={() => handleClick(5)} />
 			</div>
 			<div className="board-row">
-				<Square value={squareState[6]} onSquareClick={() => handleClick(6)} />
-				<Square value={squareState[7]} onSquareClick={() => handleClick(7)} />
-				<Square value={squareState[8]} onSquareClick={() => handleClick(8)} />
+				<Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+				<Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+				<Square value={squares[8]} onSquareClick={() => handleClick(8)} />
 			</div>
 		</>
 	);
+}
+
+export default function Game() {
+	const [xIsNext, setXIsNext] = useState(true);
+	const [history, setHistory] = useState([Array(9).fill(null)]);
+	const currentSquares = history[history.length - 1];
+
+	function handlePlay(nextSquares) {
+		setHistory([...history, nextSquares]);
+		setXIsNext(!xIsNext);
+	}
+
+	return (
+		<div className="game">
+			<div className="game-board">
+				<Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+			</div>
+			<div className="game-info">
+				<ol>{/*TODO*/}</ol>
+			</div>
+		</div>
+	);
+}
+
+function calculateWinner(squares) {
+	const lines = [
+		[0, 1, 2],
+		[3, 4, 5],
+		[6, 7, 8],
+		[0, 3, 6],
+		[1, 4, 7],
+		[2, 5, 8],
+		[0, 4, 8],
+		[2, 4, 6],
+	];
+	for (let i = 0; i < lines.length; i++) {
+		const [a, b, c] = lines[i];
+		if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+			return squares[a];
+		}
+	}
+	return null;
 }
